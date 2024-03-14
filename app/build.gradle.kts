@@ -66,4 +66,5 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
     implementation(libs.play.services.auth)
+    implementation(libs.kotlinx.collections.immutable)
 }

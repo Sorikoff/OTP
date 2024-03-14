@@ -10,6 +10,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
+import kotlinx.collections.immutable.ImmutableList
 
 data class LinkData(
     val text: String,
@@ -18,7 +19,7 @@ data class LinkData(
 )
 
 @Composable
-fun LinkifiedText(linksData: List<LinkData>) {
+fun LinkifiedText(linksData: ImmutableList<LinkData>) {
     val linkifiedString = buildLinkifiedString(linksData)
 
     ClickableText(
@@ -44,7 +45,7 @@ fun LinkifiedText(linksData: List<LinkData>) {
 
 @Composable
 @ReadOnlyComposable
-private fun buildLinkifiedString(linksData: List<LinkData>): AnnotatedString {
+private fun buildLinkifiedString(linksData: ImmutableList<LinkData>): AnnotatedString {
     return buildAnnotatedString {
         linksData.forEach { data ->
             if (data.tag.isNullOrEmpty() || data.link.isNullOrEmpty()) {

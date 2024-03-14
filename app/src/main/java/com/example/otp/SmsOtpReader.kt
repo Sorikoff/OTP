@@ -7,11 +7,18 @@ import android.content.IntentFilter
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleStartEffect
 import com.google.android.gms.auth.api.phone.SmsRetriever
 import com.google.android.gms.common.api.CommonStatusCodes
 import com.google.android.gms.common.api.Status
 
+/**
+ * A side effect of composition that will listen for a one time password in SMS. The side effect
+ * runs when the [Lifecycle] receives a [Lifecycle.Event.ON_START].
+ *
+ * @param onOtpReceived callback with the one time password received
+ */
 @Composable
 fun SmsOtpReader(onOtpReceived: (String) -> Unit) {
     val context = LocalContext.current

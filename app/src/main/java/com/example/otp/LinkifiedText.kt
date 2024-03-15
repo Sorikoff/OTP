@@ -1,17 +1,21 @@
 package com.example.otp
 
+import android.text.Spannable
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.style.URLSpan
 import android.util.Log
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
+import androidx.core.text.toSpannable
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toPersistentList
 
@@ -39,7 +43,7 @@ fun LinkifiedText(
     linksData: ImmutableList<LinkData>,
     modifier: Modifier = Modifier
 ) {
-    val linkifiedString = buildLinkifiedString(linksData)
+    val linkifiedString = buildAnnotatedLinkifiedString(linksData)
 
     ClickableText(
         text = linkifiedString,
@@ -65,64 +69,76 @@ fun LinkifiedText(
 
 /**
  * Process the Markdown text and split it into [LinkData] with extracted text and link data for
- * further processing. Any other tags are not recognized.
+ * further processing. Any other tags won't be recognized.
  *
  * @param input the text with links in Markdown format
  */
-@Composable
 fun linkifyMarkdown(input: String): ImmutableList<LinkData> {
-    val result: ImmutableList<LinkData> = remember(key1 = input) {
-        val linkRegex = """\[([^\]]+)\]\(([^)]+)\)""".toRegex()
+    val linkRegex = """\[([^\]]+)\]\(([^)]+)\)""".toRegex()
 
-        var cursor = 0
-        val linksData = mutableListOf<LinkData>()
+    var cursor = 0
+    val linksData = mutableListOf<LinkData>()
 
-        val links = linkRegex.findAll(input)
-        links.forEach { match ->
-            // Add text right before the current link
-            linksData.add(
-                LinkData(
-                    text = input.substring(
-                        startIndex = cursor,
-                        endIndex = match.range.first
-                    )
-                )
-            )
-            cursor = match.range.last + 1
-
-            // Add the current link
-            val text = match.groups[1]!!.value
-            val link = match.groups[2]!!.value
-            linksData.add(
-                LinkData(
-                    text = text,
-                    tag = text,
-                    link = link
-                )
-            )
-        }
-
-        // Add remaining text or full text if no links were found
+    val links = linkRegex.findAll(input)
+    links.forEach { match ->
+        // Add text right before the current link
         linksData.add(
             LinkData(
                 text = input.substring(
-                    startIndex = cursor
+                    startIndex = cursor,
+                    endIndex = match.range.first
                 )
             )
         )
+        cursor = match.range.last + 1
 
-        linksData.toPersistentList()
+        // Add the current link
+        val text = match.groups[1]!!.value
+        val link = match.groups[2]!!.value
+        linksData.add(
+            LinkData(
+                text = text,
+                tag = text,
+                link = link
+            )
+        )
     }
 
-    return result
+    // Add remaining text or full text if no links were found
+    linksData.add(
+        LinkData(
+            text = input.substring(
+                startIndex = cursor
+            )
+        )
+    )
+
+    return linksData.toPersistentList()
 }
 
 /**
- * Builds [AnnotatedString] from a list of the [LinkData].
+ * Builds an [Spannable] from a list of the [LinkData]. Suitable for XML.
+ */
+fun buildSpannableLinkifiedString(linksData: ImmutableList<LinkData>): Spannable {
+    SpannableStringBuilder().apply {
+        linksData.forEach { data ->
+            if (data.tag.isNullOrEmpty() || data.link.isNullOrEmpty()) {
+                append(data.text)
+            } else {
+                append(data.text, URLSpan(data.link), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            }
+        }
+    }.also { builder ->
+        return builder.toSpannable()
+    }
+}
+
+/**
+ * Builds an [AnnotatedString] from a list of the [LinkData]. Suitable for Compose.
  */
 @Composable
 @ReadOnlyComposable
-private fun buildLinkifiedString(linksData: ImmutableList<LinkData>): AnnotatedString {
+fun buildAnnotatedLinkifiedString(linksData: ImmutableList<LinkData>): AnnotatedString {
     return buildAnnotatedString {
         linksData.forEach { data ->
             if (data.tag.isNullOrEmpty() || data.link.isNullOrEmpty()) {

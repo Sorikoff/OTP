@@ -4,6 +4,7 @@ import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.style.URLSpan
+import android.text.style.UnderlineSpan
 import android.util.Log
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.MaterialTheme
@@ -125,7 +126,23 @@ fun buildSpannableLinkifiedString(linksData: ImmutableList<LinkData>): Spannable
             if (data.tag.isNullOrEmpty() || data.link.isNullOrEmpty()) {
                 append(data.text)
             } else {
-                append(data.text, URLSpan(data.link), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                append(data.text)
+
+                val start = length - data.text.length
+                val end = length
+
+                setSpan(
+                    UnderlineSpan(),
+                    start,
+                    end,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+                setSpan(
+                    URLSpan(data.link),
+                    start,
+                    end,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
             }
         }
     }.also { builder ->
